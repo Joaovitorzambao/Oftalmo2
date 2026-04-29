@@ -81,87 +81,59 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.enviarDados = async (dados) => {
+        const previewWindow = window.open('', '_blank');
+        if (!previewWindow) {
+            alert('Não foi possível abrir a pré-visualização. Verifique se o bloqueador de janelas pop-up está ativado.');
+            return;
+        }
+
         try {
             const response = await fetch('/gerar-pdf-oculos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dados),
             });
-    
+
             if (response.ok) {
                 const contentType = response.headers.get('Content-Type') || '';
 
                 if (contentType.includes('application/pdf')) {
                     const blob = await response.blob();
                     const url = URL.createObjectURL(blob);
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = url;
-                    document.body.appendChild(iframe);
-
-                    iframe.onload = () => {
-                        setTimeout(() => {
-                            try {
-                                iframe.contentWindow.focus();
-                                iframe.contentWindow.print();
-                            } catch (e) {
-                                console.error('Erro ao imprimir PDF:', e);
-                                alert('Não foi possível abrir o diálogo de impressão. Por favor, tente novamente.');
-                            }
-                            setTimeout(() => {
-                                document.body.removeChild(iframe);
-                                URL.revokeObjectURL(url);
-                            }, 1000);
-                        }, 300);
-                    };
+                    previewWindow.document.open();
+                    previewWindow.document.write(`
+                        <html>
+                        <head>
+                            <title>Visualização de PDF</title>
+                            <style>html, body {margin:0; height:100%; overflow:hidden;}</style>
+                        </head>
+                        <body>
+                            <embed src="${url}" type="application/pdf" width="100%" height="100%" />
+                            <script>
+                                window.onload = function() {
+                                    window.focus();
+                                    setTimeout(function() { window.print(); }, 500);
+                                };
+                            <\/script>
+                        </body>
+                        </html>
+                    `);
+                    previewWindow.document.close();
+                    setTimeout(() => URL.revokeObjectURL(url), 30000);
                 } else {
                     const htmlContent = await response.text();
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none'; 
-                    document.body.appendChild(iframe);
-
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    iframeDoc.open();
-                    iframeDoc.write(htmlContent);
-                    iframeDoc.close();
-
-                    iframe.onload = () => {
-                        if (iframe.contentWindow.document.readyState === 'complete') {
-                            setTimeout(() => {
-                                try {
-                                    iframe.contentWindow.focus();
-                                    iframe.contentWindow.print();
-                                } catch (e) {
-                                    console.error("Erro ao imprimir:", e);
-                                    alert("Não foi possível abrir o diálogo de impressão. Por favor, tente novamente.");
-                                }
-                                setTimeout(() => {
-                                    document.body.removeChild(iframe);
-                                }, 1000);
-                            }, 300);
-                        } else {
-                            iframe.contentWindow.addEventListener('load', () => {
-                                setTimeout(() => {
-                                    try {
-                                        iframe.contentWindow.focus();
-                                        iframe.contentWindow.print();
-                                    } catch (e) {
-                                        console.error("Erro ao imprimir:", e);
-                                        alert("Não foi possível abrir o diálogo de impressão. Por favor, tente novamente.");
-                                    }
-                                    setTimeout(() => {
-                                        document.body.removeChild(iframe);
-                                    }, 1000);
-                                }, 300);
-                            });
-                        }
-                    };
+                    previewWindow.document.open();
+                    previewWindow.document.write(htmlContent);
+                    previewWindow.document.close();
+                    previewWindow.focus();
                 }
             } else {
+                previewWindow.close();
                 console.error('Erro ao gerar o PDF:', response);
                 exibirMensagem("Erro ao gerar o PDF.", "error");
             }
         } catch (erro) {
+            previewWindow.close();
             console.error('Erro ao enviar dados:', erro);
         }
     };

@@ -27,169 +27,73 @@ def gerar_footer_exames(data_formatada):
     """
 
 def gerar_estrutura_pagina_exames(conteudo_exames, nm_paciente, ds_convenio, nr_cpf, dt_nascimento, data_formatada):
-    """
-    Gera a estrutura completa da página de exames
-    """
-    
-    template = f"""
+
+    return f"""
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <style>
-        @page {{
-            size: 15.5cm 21.5cm;
-            margin: 1cm;
-        }}
-        
-        /* Regras para evitar páginas extras */
-        @media print {{
-            body {{
-                height: 19.5cm !important; /* Altura forçada menor que a página */
-                max-height: 19.5cm !important;
-                overflow: hidden !important;
-            }}
-        }}
-        
-        * {{
-            box-sizing: border-box;
-        }}
-        
-        body {{
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            margin: 0;
-            padding: 0;
-            padding-top: 8%; /* Reduzido de 10% para 8% */
-        }}
+<meta charset="UTF-8">
+<style>
+@page {{
+    size: A5;
+    margin-top: 2cm;
+    margin-bottom: 3cm;
+    margin-left: 1cm;
+    margin-right: 1cm;
+}}
 
-        table {{
-            width: 100%;
-            height: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }}
+body {{
+    font-family: Arial;
+    margin: 0;
+}}
 
-        thead {{
-            display: table-header-group;
-        }}
-        
-        thead td {{
-            padding-top: 0.7cm; 
-            padding-bottom: 0.3cm;
-        }}
+.header {{
+    position: fixed;
+    top: 0;
+    height: 3cm;
+    width: 100%;
+}}
 
-        tfoot {{
-            display: table-footer-group;
-        }}
-        
-        tfoot td {{
-            padding-top: 0.5cm;
-            padding-bottom: 0.3cm;
-            vertical-align: bottom;
-        }}
+.footer {{
+    position: fixed;
+    bottom: 0;
+    height: 1cm;
+    width: 100%;
+    text-align: center;
+}}
 
-        tbody {{
-            display: table-row-group;
-        }}
-        
-        tbody td {{
-            vertical-align: top;
-            height: 100%;
-        }}
+.content {{
+    margin-top: 3cm;
+    margin-bottom: 1cm;
+}}
 
-        .page-header {{
-            font-size: 13px;
-            margin-top: 1.2em;
-        }}
-        
-        .page-header h3 {{
-            font-size: 15px;
-            margin: 0 0 10px 0;
-        }}
-        
-        .page-header h4 {{
-            font-size: 14px;
-            margin: 10px 0 5px 0;
-        }}
-        
-        .patient-name {{
-            font-size: 15px;
-            font-weight: bold;
-        }}
-        
-        .patient-info {{
-            display: flex;
-            gap: 20px;
-            margin-top: 5px;
-        }}
-        
-        .page-header p {{
-            margin: 3px 0;
-            line-height: 1.3;
-        }}
-
-        .page-footer {{
-            text-align: center;
-            font-size: 12px;
-            border-top: 1px solid #ddd;
-            padding-top: 0.3cm;
-            margin-bottom: 3%; /* Reduzido de 7% para 3% */
-        }}
-        
-        .page-footer p {{
-            margin: 5px 0;
-        }}
-
-        .exames-content {{
-            font-size: 14px;
-            line-height: 1.6;
-            padding: 0.3cm 0;
-            /* remover min-height: 12cm; */
-        }}
-
-        .exam-item {{
-            margin-bottom: 0;
-            page-break-inside: avoid;
-        }}
-
-        .page-header,
-        .page-footer {{
-            page-break-inside: avoid;
-        }}
-    </style>
+.exam-item {{
+    margin-bottom: 5px;
+    page-break-inside: avoid;
+}}
+</style>
 </head>
+
 <body>
-    <table>
-        <thead>
-            <tr>
-                <td>
-                    {gerar_header_exames(nm_paciente, ds_convenio, nr_cpf, dt_nascimento)}
-                </td>
-            </tr>
-        </thead>
 
-        <tfoot>
-            <tr>
-                <td>
-                    {gerar_footer_exames(data_formatada)}
-                </td>
-            </tr>
-        </tfoot>
+<div class="header">
+    <h3>Solicitação de Exames</h3>
+    <p><strong>{nm_paciente}</strong></p>
+    <p>Convênio: {ds_convenio}</p>
+    <p>CPF: {nr_cpf} | Nascimento: {dt_nascimento}</p>
+</div>
 
-        <tbody>
-            <tr>
-                <td>
-                    <div class="exames-content">
-                        {conteudo_exames}
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<div class="content">
+    {conteudo_exames}
+</div>
+
+<div class="footer">
+    Curitiba, {data_formatada}
+</div>
+
 </body>
 </html>
-    """
+"""
     
     return template
 

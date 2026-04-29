@@ -61,6 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Enviando dados para impressão:', dadosCompletos);
 
+            const previewWindow = window.open('', '_blank');
+            if (!previewWindow) {
+                exibirMensagem('Não foi possível abrir a pré-visualização. Verifique se o bloqueador de janelas pop-up está ativado.', 'error');
+                return;
+            }
+
             const response = await fetch('/gerar-pdf-receita', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -73,60 +79,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (contentType.includes('application/pdf')) {
                     const blob = await response.blob();
                     const url = URL.createObjectURL(blob);
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = url;
-                    document.body.appendChild(iframe);
-
-                    iframe.onload = () => {
-                        setTimeout(() => {
-                            try {
-                                iframe.contentWindow.focus();
-                                iframe.contentWindow.print();
-                            } catch (e) {
-                                console.error('Erro ao imprimir PDF:', e);
-                                exibirMensagem("Não foi possível abrir o diálogo de impressão", "error");
-                            }
-                            setTimeout(() => {
-                                document.body.removeChild(iframe);
-                                URL.revokeObjectURL(url);
-                            }, 1000);
-                        }, 500);
-                    };
+                    previewWindow.document.open();
+                    previewWindow.document.write(`
+                        <html>
+                        <head>
+                            <title>Visualização de PDF</title>
+                            <style>html, body {margin:0; height:100%; overflow:hidden;}</style>
+                        </head>
+                        <body>
+                            <embed src="${url}" type="application/pdf" width="100%" height="100%" />
+                            <script>
+                                window.onload = function() {
+                                    window.focus();
+                                    setTimeout(function() { window.print(); }, 500);
+                                };
+                            <\/script>
+                        </body>
+                        </html>
+                    `);
+                    previewWindow.document.close();
+                    setTimeout(() => URL.revokeObjectURL(url), 30000);
                 } else {
                     const htmlContent = await response.text();
-
-                    const iframe = document.createElement('iframe');
-                    iframe.style.position = 'absolute';
-                    iframe.style.width = '0';
-                    iframe.style.height = '0';
-                    iframe.style.border = 'none';
-                    document.body.appendChild(iframe);
-
-                    const iframeDoc = iframe.contentWindow.document;
-                    iframeDoc.open();
-                    iframeDoc.write(htmlContent);
-                    iframeDoc.close();
-
-                    iframe.contentWindow.addEventListener('load', () => {
-                        setTimeout(() => {
-                            try {
-                                iframe.contentWindow.focus();
-                                iframe.contentWindow.print();
-                            } catch (e) {
-                                console.error("Erro ao imprimir:", e);
-                                exibirMensagem("Não foi possível abrir o diálogo de impressão", "error");
-                            }
-
-                            setTimeout(() => {
-                                document.body.removeChild(iframe);
-                            }, 1000);
-                        }, 500);
-                    });
+                    previewWindow.document.open();
+                    previewWindow.document.write(htmlContent);
+                    previewWindow.document.close();
+                    previewWindow.focus();
                 }
 
                 exibirMensagem('Documento preparado para impressão!', 'success');
             } else {
+                previewWindow.close();
+                const errorText = await response.text();
+                console.error('Erro na resposta:', errorText);
+                exibirMensagem('Erro ao gerar o PDF da receita', 'error');
+            }
                 const errorText = await response.text();
                 console.error('Erro na resposta:', errorText);
                 exibirMensagem('Erro ao gerar o PDF da receita', 'error');

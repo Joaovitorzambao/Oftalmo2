@@ -9,148 +9,86 @@ def retornar_html_resumo(nm_paciente, idade_paciente, profissao, convenio, sexo,
     for consulta in consultas:
         consultas_html += f"""
         <div class="consultation">
-            <div class="consultation-header">
-                <h3>Consulta - {consulta.get('data_consulta', 'N/A')}</h3>
-                <p><strong>Status:</strong> {consulta.get('status_consulta', 'N/A')}</p>
-            </div>
-            <div class="consultation-details">
-                <div><strong>Número do Atendimento:</strong> {consulta.get('nr_atendimento', 'N/A')}</div>
-                <div><strong>Médico:</strong> {consulta.get('medico', 'N/A')}</div>
-                <div><strong>Queixa Principal:</strong> {consulta.get('queixa', 'N/A')}</div>
-                <div><strong>Refracao:</strong> {consulta.get('refracao', 'N/A')}</div>
-                <div><strong>Acuidade:</strong> {consulta.get('acuidade', 'N/A')}</div>
-                <div><strong>Pressão:</strong> {consulta.get('pressao', 'N/A')}</div>
-                <div><strong>Diagnóstico:</strong> {consulta.get('diagnostico', 'N/A')}</div>
-                <div><strong>Conduta:</strong> {consulta.get('conduta', 'N/A')}</div>
-                <div><strong>Exames:</strong> {consulta.get('exames', 'N/A')}</div>
-                <div><strong>Óculos:</strong> {consulta.get('oculos', 'N/A')}</div>
-            </div>
+            <h3>Consulta - {consulta.get('data_consulta', 'N/A')}</h3>
+            <p><strong>Status:</strong> {consulta.get('status_consulta', 'N/A')}</p>
+            <div><strong>Atendimento:</strong> {consulta.get('nr_atendimento', 'N/A')}</div>
+            <div><strong>Médico:</strong> {consulta.get('medico', 'N/A')}</div>
+            <div><strong>Queixa:</strong> {consulta.get('queixa', 'N/A')}</div>
+            <div><strong>Diagnóstico:</strong> {consulta.get('diagnostico', 'N/A')}</div>
         </div>
         """
 
     return f"""
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Resumo do Prontuário Eletrônico do Paciente</title>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                background-color: #f5f5f5;
-            }}
-            .container {{
-                width: 800px;
-                margin: 20px auto;
-                padding: 20px;
-                background: white;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }}
-            .header {{
-                text-align: center;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #007BFF;
-            }}
-            .header h1 {{
-                margin: 0;
-                font-size: 18px;
-                color: #007BFF;
-            }}
-            .header h2 {{
-                margin: 0;
-                font-size: 16px;
-                font-weight: normal;
-                color: #555;
-            }}
-            .header .right {{
-                text-align: right;
-                font-size: 12px;
-                color: #999;
-            }}
-            .info {{
-                margin-bottom: 20px;
-                font-size: 14px;
-            }}
-            .info .section {{
-                margin-bottom: 10px;
-                padding: 10px;
-                background-color: #f9f9f9;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-            }}
-            .info .section h3 {{
-                margin: 0;
-                font-size: 16px;
-                color: #007BFF;
-                margin-bottom: 10px;
-            }}
-            .consultation {{
-                margin-top: 20px;
-                padding: 15px;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                background: #f9f9f9;
-            }}
-            .consultation-header {{
-                margin-bottom: 10px;
-                background: #007BFF;
-                color: white;
-                padding: 8px;
-                border-radius: 4px;
-            }}
-            .consultation-header h3 {{
-                margin: 0;
-                font-size: 16px;
-            }}
-            .consultation-header p {{
-                margin: 0;
-                font-size: 14px;
-                font-weight: bold;
-            }}
-            .consultation-details {{
-                font-size: 14px;
-                color: #333;
-            }}
-            .consultation-details div {{
-                margin-bottom: 8px;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>OFTALMOCLINICA CURITIBA</h1>
-                <h2>Resumo do Prontuário Eletrônico do Paciente</h2>
-                <div class="right">CLIR034</div>
-            </div>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@page {{
+    size: A5;
+    margin-top: 2cm;
+    margin-bottom: 3cm;
+    margin-left: 1cm;
+    margin-right: 1cm;
+}}
 
-            <div class="info">
-                <div class="section">
-                    <h3>Informações do Paciente</h3>
-                    <div><strong>Paciente:</strong> {nm_paciente}</div>
-                    <div><strong>Profissão:</strong> {profissao}</div>
-                    <div><strong>Convênio:</strong> {convenio}</div>
-                    <div><strong>Sexo:</strong> {sexo}</div>
-                    <div><strong>Data de Nascimento:</strong> {dt_nascimento}</div>
-                    <div><strong>Idade:</strong> {idade_paciente}</div>
-                    <div><strong>CPF:</strong> {cpf}</div>
-                </div>
-            </div>
+body {{
+    font-family: Arial;
+    margin: 0;
+}}
 
-            <div id="consultations">
-                {consultas_html}
-            </div>
-        </div>
-    </body>
-    </html>
-    """
+.header {{
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 3cm;
+    text-align: center;
+}}
+
+.footer {{
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 1cm;
+    text-align: center;
+    font-size: 12px;
+}}
+
+.content {{
+    margin-top: 3cm;
+    margin-bottom: 1cm;
+}}
+
+.consultation {{
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+}}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h2>Resumo do Prontuário</h2>
+</div>
+
+<div class="content">
+    <p><strong>Paciente:</strong> {nm_paciente}</p>
+    <p><strong>CPF:</strong> {cpf}</p>
+    <p><strong>Nascimento:</strong> {dt_nascimento}</p>
+
+    {consultas_html}
+</div>
+
+<div class="footer">
+    Documento gerado automaticamente
+</div>
+
+</body>
+</html>
+"""
 
 
 

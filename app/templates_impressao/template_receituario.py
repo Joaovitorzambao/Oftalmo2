@@ -23,177 +23,71 @@ def gerar_footer(data_formatada):
     """
 
 def gerar_estrutura_pagina(conteudo_items, nm_paciente, nr_cpf, dt_nascimento, data_formatada):
-    """
-    Gera a estrutura completa da página com header e footer fixos
-    usando a abordagem de table com thead/tfoot para repetição automática
-    """
-    
-    template = f"""
+
+    return f"""
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <style>
-        @page {{
-            size: 15.5cm 21.5cm;
-            margin-top: 1.7cm;
-            margin-right: 1cm;
-            margin-bottom: 1.3cm; /* Aumentado de 1cm para 1.2cm (+0.2cm) */
-            margin-left: 1cm;
-        }}
-        
-        * {{
-            box-sizing: border-box;
-        }}
-        
-        body {{
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            margin: 0;
-            padding: 0;
-            padding-top: 3%; /* Adiciona espaço de 3% no topo para descer o corpo */
-        }}
+<meta charset="UTF-8">
+<style>
+@page {{
+    size: A5;
+    margin-top: 2cm;
+    margin-bottom: 3cm;
+    margin-left: 1cm;
+    margin-right: 1cm;
+}}
 
-        /* Estrutura da tabela para repetição automática */
-        table {{
-            width: 100%;
-            height: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }}
+body {{
+    font-family: Arial;
+    margin: 0;
+}}
 
-        /* Header - será repetido em cada página */
-        thead {{
-            display: table-header-group;
-        }}
-        
-        thead td {{
-            padding-top: 0.5cm;
-            padding-bottom: 0.3cm;
-        }}
+.header {{
+    position: fixed;
+    top: 0;
+    height: 3cm;
+    width: 100%;
+}}
 
-        /* Footer - será repetido em cada página */
-        tfoot {{
-            display: table-footer-group;
-        }}
-        
-        tfoot td {{
-            padding-top: 0.5cm;
-            padding-bottom: 0.3cm;
-            vertical-align: bottom;
-        }}
+.footer {{
+    position: fixed;
+    bottom: 0;
+    height: 1cm;
+    width: 100%;
+    text-align: center;
+}}
 
-        /* Conteúdo principal */
-        tbody {{
-            display: table-row-group;
-        }}
-        
-        tbody td {{
-            vertical-align: top;
-            height: 100%;
-        }}
+.content {{
+    margin-top: 3cm;
+    margin-bottom: 1cm;
+}}
 
-        /* Estilos do Header */
-        .page-header {{
-            font-size: 13px;
-            padding: 0.3cm 0;
-            border-bottom: 1px solid #ddd;
-        }}
-        
-        .patient-name {{
-            font-size: 15px;
-            font-weight: bold;
-        }}
-        
-        .patient-info {{
-            display: flex;
-            gap: 20px;
-            margin-top: 5px;
-        }}
-
-        /* Estilos do Footer */
-        .page-footer {{
-            text-align: center;
-            font-size: 12px;
-            border-top: 1px solid #ddd;
-            padding-top: 0.3cm;
-        }}
-        
-        .page-footer p {{
-            margin: 5px 0;
-        }}
-
-        /* Estilos do Conteúdo */
-        .receita-content {{
-            font-size: 14px;
-            line-height: 1.5;
-            padding: 0.3cm 0;
-            min-height: 12cm;
-        }}
-
-        .med-item {{
-            margin-bottom: 0.8em;
-            page-break-inside: avoid;
-            orphans: 3;
-            widows: 3;
-        }}
-        
-        .med-item .uso-linha {{
-            display: inline;
-            font-weight: bold;
-        }}
-        
-        .med-item .medicamento-linha {{
-            display: block;
-            margin-top: 0;
-        }}
-        
-        .med-item .instrucoes-linha {{
-            display: block;
-            margin-top: 0.2em;
-        }}
-
-        /* Evitar quebras indesejadas */
-        .page-header,
-        .page-footer {{
-            page-break-inside: avoid;
-        }}
-    </style>
+.med-item {{
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+}}
+</style>
 </head>
+
 <body>
-    <table>
-        <!-- HEADER - Repetido automaticamente em cada página -->
-        <thead>
-            <tr>
-                <td>
-                    {gerar_header(nm_paciente, nr_cpf, dt_nascimento)}
-                </td>
-            </tr>
-        </thead>
 
-        <!-- FOOTER - Repetido automaticamente em cada página -->
-        <tfoot>
-            <tr>
-                <td>
-                    {gerar_footer(data_formatada)}
-                </td>
-            </tr>
-        </tfoot>
+<div class="header">
+    <p><strong>{nm_paciente}</strong></p>
+    <p>CPF: {nr_cpf} | Nascimento: {dt_nascimento}</p>
+</div>
 
-        <!-- CONTEÚDO - Itens da receita -->
-        <tbody>
-            <tr>
-                <td>
-                    <div class="receita-content">
-                        {conteudo_items}
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<div class="content">
+    {conteudo_items}
+</div>
+
+<div class="footer">
+    Curitiba, {data_formatada}
+</div>
+
 </body>
 </html>
-    """
+"""
     
     return template
 

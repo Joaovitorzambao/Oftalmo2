@@ -758,40 +758,19 @@
                 if (response.ok) {
                     const htmlContent = await response.text();
                     console.log('HTML recebido, tamanho:', htmlContent.length);
-                    
-                    const iframe = document.createElement('iframe');
-                    iframe.style.position = 'absolute';
-                    iframe.style.width = '0';
-                    iframe.style.height = '0';
-                    iframe.style.border = 'none';
-                    
-                    document.body.appendChild(iframe);
-                    
-                    const iframeDoc = iframe.contentWindow.document;
-                    iframeDoc.open();
-                    iframeDoc.write(htmlContent);
-                    iframeDoc.close();
 
-                    iframe.contentWindow.addEventListener('load', () => {
-                        console.log('Iframe carregado, iniciando impressão');
-                        setTimeout(() => {
-                            try {
-                                iframe.contentWindow.focus();
-                                iframe.contentWindow.print();
-                                console.log('Diálogo de impressão aberto');
-                            } catch (e) {
-                                console.error("Erro ao imprimir:", e);
-                                exibirMensagem("❌ Não foi possível abrir o diálogo de impressão", "error");
-                            }
-                            
-                            setTimeout(() => {
-                                document.body.removeChild(iframe);
-                                console.log('Iframe removido');
-                            }, 1000);
-                        }, 500);
-                    });
+                    const previewWindow = window.open('', '_blank');
+                    if (previewWindow) {
+                        previewWindow.document.open();
+                        previewWindow.document.write(htmlContent);
+                        previewWindow.document.close();
+                        previewWindow.focus();
+                        console.log('Pré-visualização aberta em nova aba');
+                    } else {
+                        exibirMensagem('❌ Não foi possível abrir a pré-visualização. Verifique se o bloqueador de pop-ups está ativado.', 'error');
+                    }
 
-                    exibirMensagem('📄 Preparando impressão...', 'success');
+                    exibirMensagem('📄 Documento aberto para visualização. Use o menu de impressão do navegador para selecionar Microsoft Print to PDF.', 'success');
                 } else {
                     const errorText = await response.text();
                     console.error('Erro na resposta:', errorText);

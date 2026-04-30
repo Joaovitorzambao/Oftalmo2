@@ -37,9 +37,9 @@
    cd GA0082-ProntuarioOftalmoClinicas
    ```
 
-2. **Crie e ative um ambiente virtual (opcional):**
+2. **Crie e ative um ambiente virtual com Python 3.10:**
    ```sh
-   python -m venv venv
+   python3.10 -m venv venv
    source venv/bin/activate   # Linux/Mac
    venv\Scripts\activate      # Windows
    ```

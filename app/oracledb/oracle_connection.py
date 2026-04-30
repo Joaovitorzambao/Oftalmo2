@@ -14,39 +14,17 @@ class OracleConnection:
         self.host = host
         self.port = port
         self.service_name = service_name
-
     @classmethod
     def _initialize_oracle_client(cls):
         if not cls._oracle_client_initialized:
-            env_path = os.getenv("ORACLE_CLIENT_LIB_DIR")
-            candidate_paths = []
-            if env_path:
-                candidate_paths.append(env_path)
-
-            if platform.system() == "Windows":
-                candidate_paths.extend([
-                    r"C:\Oracle\instantclient-basic-windows.x64-21.19.0.0.0dbru\instantclient_21_19",
-                    r"C:\Oracle\instantclient-basic-windows.x64-23.26.0.0.0.0\instantclient_23_0",
-                ])
-            else:
-                candidate_paths.append("/opt/oracle/instantclient_23_9")
-
-            for oracle_client_path in candidate_paths:
-                try:
-                    cx_Oracle.init_oracle_client(lib_dir=oracle_client_path)
-                    cls._oracle_client_initialized = True
-                    break
-                except Exception:
-                    continue
-
-            """ 
             #Oracle Pedro
             #oracle_client_path = r"C:\Oracle\instantclient_21_17"
 
-            oracle_client_path = "/opt/oracle/instantclient_23_9" #alternativa para linux
+            #Oracle João
+            #oracle_client_path= r"C:\Oracle\instantclient-basic-windows.x64-21.19.0.0.0dbru\instantclient_21_19"
+            #oracle_client_path = "/opt/oracle/instantclient_23_9" #alternativa para linux
             cx_Oracle.init_oracle_client(lib_dir=oracle_client_path)
             cls._oracle_client_initialized = True
-            """
 
     def get_connection(self):
         dsn = cx_Oracle.makedsn(self.host, self.port, service_name=self.service_name)

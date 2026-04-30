@@ -32,7 +32,7 @@ def gerar_estrutura_pagina(conteudo_items, nm_paciente, nr_cpf, dt_nascimento, d
 <style>
 @page {{
     size: A5;
-    margin-top: 2cm;
+    margin-top: 4cm;
     margin-bottom: 3cm;
     margin-left: 1cm;
     margin-right: 1cm;
@@ -41,6 +41,7 @@ def gerar_estrutura_pagina(conteudo_items, nm_paciente, nr_cpf, dt_nascimento, d
 body {{
     font-family: Arial;
     margin: 0;
+    line-height: 1.5
 }}
 
 .header {{

@@ -461,30 +461,31 @@
         try {
             // Get current active section
             const secaoAtiva = document.querySelector('.section-dinamica')?.getAttribute('data-section');
+            console.log('Imprimindo seção atual:', secaoAtiva);
             
             // After saving, execute print logic based on active section
             switch(secaoAtiva) {
                 case 'oculos':
                     const dadosOculos = window.capturarValoresOculos();
-                    window.enviarDados(dadosOculos);
+                    await window.enviarDados(dadosOculos);
                     break;
                 case 'receituario':
                     const dadosReceita = window.capturarValoresReceita();
-                    window.enviarDadosReceita(dadosReceita);
+                    await window.enviarDadosReceita(dadosReceita);
                     break;
                 case 'exames':
                     const dadosExames = window.capturarValoresExames();
-                    window.enviarDadosExames(dadosExames);
+                    await window.enviarDadosExames(dadosExames);
                     break;
                 case 'resumo':
                     const dadosResumo = window.capturarValoresResumo();
-                    window.enviarDadosResumo(dadosResumo);
+                    await window.enviarDadosResumo(dadosResumo);
                     break;
                 default:
                     // Try to print oculos as default
                     try {
                         const dadosOculos = window.capturarValoresOculos();
-                        window.enviarDados(dadosOculos);
+                        await window.enviarDados(dadosOculos);
                     } catch(e) {
                         console.error("Erro ao imprimir seção atual:", e);
                         alert("Não foi possível imprimir esta seção");

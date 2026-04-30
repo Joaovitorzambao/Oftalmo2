@@ -103,6 +103,15 @@ export async function saveAndUpdateDate(element) {
 // Wrapper function for print button
 export async function saveAndPrint() {
     console.log("Salvando rascunho antes de imprimir");
+
+    const printPreviewWindow = window.open('about:blank', '_blank');
+    if (!printPreviewWindow) {
+        exibirMensagem('Não foi possível abrir a pré-visualização. Verifique se o bloqueador de janelas pop-up está ativado.', 'error');
+        return;
+    }
+
+    printPreviewWindow.focus();
+    window.printPreviewWindow = printPreviewWindow;
     
     try {
         // Get current active section
@@ -116,16 +125,23 @@ export async function saveAndPrint() {
         
         // After saving, proceed with printing
         if (typeof window.imprimirSecaoAtual === 'function') {
-            window.imprimirSecaoAtual();
+            console.log("Chamando imprimirSecaoAtual após salvar.");
+            await window.imprimirSecaoAtual();
         } else {
             console.error("Função imprimirSecaoAtual não encontrada");
             exibirMensagem("Erro ao imprimir: função não encontrada", "error");
+            window.printPreviewWindow = null;
+            printPreviewWindow.close();
         }
     } catch (error) {
         console.error("Error saving draft before printing:", error);
         // Try to continue with printing even if save fails
         if (typeof window.imprimirSecaoAtual === 'function') {
-            window.imprimirSecaoAtual();
+            console.log("Continuando para imprimir mesmo com erro de salvamento.");
+            await window.imprimirSecaoAtual();
+        } else {
+            window.printPreviewWindow = null;
+            printPreviewWindow.close();
         }
     }
 }

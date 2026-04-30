@@ -81,7 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.enviarDados = async (dados) => {
-        const previewWindow = window.open('', '_blank');
+        let previewWindow = window.printPreviewWindow;
+        if (!previewWindow || previewWindow.closed) {
+            previewWindow = window.open('', '_blank');
+            window.printPreviewWindow = previewWindow;
+        }
         if (!previewWindow) {
             alert('Não foi possível abrir a pré-visualização. Verifique se o bloqueador de janelas pop-up está ativado.');
             return;
@@ -119,12 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         </html>
                     `);
                     previewWindow.document.close();
+                    window.printPreviewWindow = null;
                     setTimeout(() => URL.revokeObjectURL(url), 30000);
                 } else {
                     const htmlContent = await response.text();
                     previewWindow.document.open();
                     previewWindow.document.write(htmlContent);
                     previewWindow.document.close();
+                    window.printPreviewWindow = null;
                     previewWindow.focus();
                 }
             } else {
@@ -133,7 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 exibirMensagem("Erro ao gerar o PDF.", "error");
             }
         } catch (erro) {
-            previewWindow.close();
+            if (previewWindow && !previewWindow.closed) {
+                previewWindow.close();
+            }
+            window.printPreviewWindow = null;
             console.error('Erro ao enviar dados:', erro);
         }
     };

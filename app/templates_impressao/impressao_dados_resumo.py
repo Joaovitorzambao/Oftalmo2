@@ -35,6 +35,7 @@ def retornar_html_resumo(nm_paciente, idade_paciente, profissao, convenio, sexo,
 body {{
     font-family: Arial;
     margin: 0;
+    line-height: 1.5
 }}
 
 .header {{

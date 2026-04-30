@@ -802,6 +802,14 @@ async def salvar_rascunho_prontuario(
     if not cd_medico:
         return RedirectResponse("/login", status_code=302)
 
+    dt_fim_consulta = get_status_consulta.get_status_consulta(nr_atendimento)
+    if dt_fim_consulta:
+        logger.warning(f"Salvar rascunho bloqueado: consulta já liberada. nr_atendimento={nr_atendimento} dt_fim_consulta={dt_fim_consulta}")
+        return JSONResponse(
+            content={"status": "error", "mensagem": "Ação não autorizada: consulta já liberada.", "dt_fim_consulta": str(dt_fim_consulta)},
+            status_code=400
+        )
+
     # Restauração da função de conversão original
     def converter_valor(valor: str):
         try:

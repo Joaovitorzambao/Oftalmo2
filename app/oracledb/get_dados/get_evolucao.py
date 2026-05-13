@@ -82,3 +82,96 @@ def get_evolucao_data(nr_atendimento):
     }
 
     return evolucao_data
+
+
+def get_evolucao_data_with_fallback(nr_atendimento):
+    """
+    Fetch evolution data for a specific appointment.
+    If refraction data is empty, fetch from patient's history.
+    """
+    # First, try to get data for current appointment
+    evolucao_data = get_evolucao_data(nr_atendimento)
+    
+    if not evolucao_data:
+        return None
+    
+    # Check if key refraction fields are empty
+    has_refracao = any([
+        evolucao_data.get('vl_od_pl_ard_esf'),
+        evolucao_data.get('vl_od_pl_ard_cil'),
+        evolucao_data.get('vl_od_pl_ard_eixo'),
+        evolucao_data.get('vl_oe_pl_ard_esf'),
+        evolucao_data.get('vl_oe_pl_ard_cil'),
+        evolucao_data.get('vl_oe_pl_ard_eixo'),
+        evolucao_data.get('vl_od_pl_are_esf'),
+        evolucao_data.get('vl_od_pl_are_cil'),
+        evolucao_data.get('vl_od_pl_are_eixo'),
+        evolucao_data.get('vl_oe_pl_are_esf'),
+        evolucao_data.get('vl_oe_pl_are_cil'),
+        evolucao_data.get('vl_oe_pl_are_eixo'),
+    ])
+    
+    # If no refraction data, fetch from patient history
+    if not has_refracao:
+        query = """
+        SELECT 
+            ofr.vl_od_pl_ard_esf,
+            ofr.vl_od_pl_ard_cil,
+            ofr.vl_od_pl_ard_eixo,
+            ofr.vl_oe_pl_ard_esf,
+            ofr.vl_oe_pl_ard_cil,
+            ofr.vl_oe_pl_ard_eixo,
+            ofr.vl_adicao,
+            ofr.ds_observacao as obs_refracao,
+            ofr.vl_od_pl_are_esf,
+            ofr.vl_od_pl_are_cil,
+            ofr.vl_od_pl_are_eixo,
+            ofr.vl_oe_pl_are_esf,
+            ofr.vl_oe_pl_are_cil,
+            ofr.vl_oe_pl_are_eixo
+        FROM oft_refracao ofr
+        JOIN oft_consulta oc ON oc.nr_sequencia = ofr.nr_seq_consulta
+        WHERE oc.cd_pessoa_fisica = (
+            SELECT cd_pessoa_fisica
+            FROM atendimento_paciente
+            WHERE nr_atendimento = :nr_atendimento
+        )
+        AND oc.nr_atendimento != :nr_atendimento
+        AND ofr.dt_atualizacao_nrec IS NOT NULL
+        AND (
+            ofr.vl_od_pl_ard_esf IS NOT NULL
+            OR ofr.vl_od_pl_ard_cil IS NOT NULL
+            OR ofr.vl_od_pl_ard_eixo IS NOT NULL
+            OR ofr.vl_oe_pl_ard_esf IS NOT NULL
+            OR ofr.vl_oe_pl_ard_cil IS NOT NULL
+            OR ofr.vl_oe_pl_ard_eixo IS NOT NULL
+            OR ofr.vl_od_pl_are_esf IS NOT NULL
+            OR ofr.vl_od_pl_are_cil IS NOT NULL
+            OR ofr.vl_od_pl_are_eixo IS NOT NULL
+            OR ofr.vl_oe_pl_are_esf IS NOT NULL
+            OR ofr.vl_oe_pl_are_cil IS NOT NULL
+            OR ofr.vl_oe_pl_are_eixo IS NOT NULL
+        )
+        ORDER BY ofr.dt_atualizacao_nrec DESC
+        """
+        
+        result = oraconn.execute_select(query, {'nr_atendimento': nr_atendimento})
+        
+        if result:
+            # Update with historical data
+            evolucao_data['vl_od_pl_ard_esf'] = result[0][0] or ''
+            evolucao_data['vl_od_pl_ard_cil'] = result[0][1] or ''
+            evolucao_data['vl_od_pl_ard_eixo'] = result[0][2] or ''
+            evolucao_data['vl_oe_pl_ard_esf'] = result[0][3] or ''
+            evolucao_data['vl_oe_pl_ard_cil'] = result[0][4] or ''
+            evolucao_data['vl_oe_pl_ard_eixo'] = result[0][5] or ''
+            evolucao_data['vl_adicao'] = result[0][6] or ''
+            evolucao_data['obs_refracao'] = result[0][7] or ''
+            evolucao_data['vl_od_pl_are_esf'] = result[0][8] or ''
+            evolucao_data['vl_od_pl_are_cil'] = result[0][9] or ''
+            evolucao_data['vl_od_pl_are_eixo'] = result[0][10] or ''
+            evolucao_data['vl_oe_pl_are_esf'] = result[0][11] or ''
+            evolucao_data['vl_oe_pl_are_cil'] = result[0][12] or ''
+            evolucao_data['vl_oe_pl_are_eixo'] = result[0][13] or ''
+    
+    return evolucao_data

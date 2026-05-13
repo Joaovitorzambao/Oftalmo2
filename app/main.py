@@ -460,8 +460,8 @@ async def get_evolucao_data_route(request: Request, nr_atendimento: int):
         )
 
     try:
-        # Get evolution data for this appointment
-        evolucao_data = get_evolucao.get_evolucao_data(nr_atendimento)
+        # Get evolution data for this appointment, with fallback to historical data
+        evolucao_data = get_evolucao.get_evolucao_data_with_fallback(nr_atendimento)
         
         if not evolucao_data:
             return JSONResponse(
@@ -686,7 +686,8 @@ async def exibir_receituario(nr_atendimento: int, request: Request):
     if not cd_medico:
         return RedirectResponse("/login", status_code=302)
     
-    refracao = get_ultima_refracao.get_ultima_refracao(nr_atendimento)
+    refracao = get_ultima_refracao.get_ultima_refracao_historica(nr_atendimento)
+    orientacao_oculos = get_refracao.get_ultima_orientacao_oculos(nr_atendimento)
 
     if refracao:
         (vl_od_pl_ard_esf, vl_od_pl_ard_cil, vl_od_pl_ard_eixo,
@@ -710,6 +711,7 @@ async def exibir_receituario(nr_atendimento: int, request: Request):
         'vl_oe_pl_ard_eixo': vl_oe_pl_ard_eixo,
         'vl_adicao': vl_adicao, 
         'ds_observacao': ds_observacao,
+        'ds_orientacao_oculos': orientacao_oculos,
     })
 
 @app.get("/prontuario/{nr_atendimento}/receituario", response_class=HTMLResponse)

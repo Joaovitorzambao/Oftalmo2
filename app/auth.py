@@ -11,7 +11,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     'port': 5432
 }"""
 
-
 PG_CONFIG = {
     "user": "postgres",
     "password": "@GhrB$2024#",

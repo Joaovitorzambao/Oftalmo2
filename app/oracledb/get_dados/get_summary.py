@@ -1,4 +1,6 @@
 from app.oracledb.oracle_connection import OracleConnection
+from app.formatar_oculos import formatar_refracao_registro
+from app.oracledb.get_dados.get_refracao import get_refracoes_por_consultas
 
 class PatientSummary:
     def __init__(self):
@@ -31,13 +33,13 @@ class PatientSummary:
                     ci.nr_atendimento,
                     m.nm_guerra,
                     oa.ds_anamnese,
-                    ofr.ds_observacao as refracao,
+                    oo.ds_orientacao as oculos,
                     oca.ds_observacao as acuidade,
                     ot.ds_observacao as pressao,
                     da.diagnosticos,
                     ofc.ds_conduta,
                     pee.ds_solicitacao as exames,
-                    oo.ds_orientacao as oculos,
+                    ci.nr_seq_consulta,
                     CASE 
                         WHEN ci.dt_fim_consulta IS NOT NULL THEN 'Finalizada'
                         ELSE 'Em andamento'
@@ -45,7 +47,6 @@ class PatientSummary:
                 FROM ConsultaInfo ci
                 LEFT JOIN medico m ON m.cd_pessoa_fisica = ci.cd_medico_req
                 LEFT JOIN oft_anamnese oa ON oa.nr_seq_consulta = ci.nr_seq_consulta
-                LEFT JOIN oft_refracao ofr ON ofr.nr_seq_consulta = ci.nr_seq_consulta
                 LEFT JOIN oft_correcao_atual oca ON oca.nr_seq_consulta = ci.nr_seq_consulta
                 LEFT JOIN oft_tonometria ot ON ot.nr_seq_consulta = ci.nr_seq_consulta
                 LEFT JOIN DiagnosticosAgrupados da ON da.nr_atendimento = ci.nr_atendimento
@@ -56,6 +57,9 @@ class PatientSummary:
         """
         
         results = self.oraconn.execute_select(query, {'cd_pessoa_fisica': cd_pessoa_fisica})
+
+        seq_consultas = [row[10] for row in results if row[10]]
+        refracoes = get_refracoes_por_consultas(seq_consultas, self.oraconn)
         
         return [
             {
@@ -63,13 +67,13 @@ class PatientSummary:
                 'nr_atendimento': row[1] or 'N/A',
                 'medico': row[2] or 'N/A',
                 'queixa': row[3] or 'N/A',
-                'refracao': row[4] or 'N/A',
+                'refracao': formatar_refracao_registro(refracoes.get(row[10]), row[4]) or 'N/A',
                 'acuidade': row[5] or 'N/A',
                 'pressao': row[6] or 'N/A',
                 'diagnostico': row[7] or 'N/A',
                 'conduta': row[8] or 'N/A',
                 'exames': row[9] or 'N/A',
-                'oculos': row[10] or 'N/A',
+                'oculos': row[4] or 'N/A',
                 'status_consulta': row[11] or 'Em andamento'
             } for row in results
         ]

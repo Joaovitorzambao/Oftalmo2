@@ -1,5 +1,7 @@
 from app.oracledb.oracle_connection import OracleConnection
 from datetime import datetime
+from app.formatar_oculos import formatar_refracao_registro
+from app.oracledb.get_dados.get_refracao import get_refracoes_por_consultas
 
 
 #PRODUCAO
@@ -263,19 +265,27 @@ def get_consultas_por_paciente(cd_pessoa_fisica):
         exames_results = oraconn.execute_select(exames_query)
         for ex_row in exames_results:
             exames[ex_row[0]] = ex_row[1]
+
+    # 4. Buscar refrações numéricas para formatar OD/OE corretamente no resumo
+    refracoes = get_refracoes_por_consultas(seq_consultas)
     
-    # 4. Montar o resultado final usando os dicionários de condutas e exames
+    # 5. Montar o resultado final usando os dicionários de condutas e exames
     consultas = []
     for row in results:
         dt_consulta, nr_atendimento, nm_usuario, ds_anamnese, ds_oculos, ds_acuidade, \
         ds_pressao, ds_diagnostico, ds_cirurgia, ds_lentes, nr_seq_consulta, rn = row
+
+        refracao_formatada = formatar_refracao_registro(
+            refracoes.get(nr_seq_consulta),
+            ds_oculos,
+        )
         
         consultas.append({
             "data_consulta": dt_consulta.strftime("%d/%m/%Y") if hasattr(dt_consulta, "strftime") else str(dt_consulta),
             "nr_atendimento": nr_atendimento,  # IMPORTANTE: Certificar que está aqui
             "medico": nm_usuario or "",
             "queixa": ds_anamnese,
-            "refracao": ds_oculos,
+            "refracao": refracao_formatada,
             "acuidade": ds_acuidade,
             "pressao": ds_pressao,
             "diagnostico": ds_diagnostico,

@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     previewWindow.document.write(htmlContent);
                     previewWindow.document.close();
                     previewWindow.focus();
+                    setTimeout(() => previewWindow.print(), 500);
                 }
             } else {
                 previewWindow.close();

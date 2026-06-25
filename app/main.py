@@ -881,16 +881,31 @@ async def salvar_rascunho_prontuario(
                         nm_usuario=nm_usuario
                     )
 
-                # Mantendo sua regra de negócio de montagem da string de óculos
                 if any([v_od_esf, v_od_cil, vl_od_pl_ard_eixo, v_oe_esf, v_oe_cil, vl_oe_pl_ard_eixo, v_add, ds_observacao_refracao]):
-                    ds_oculos = "Óculos: " + (locale.format_string('OD: %+0.2f', v_od_esf) if v_od_esf else '') + \
-                                (locale.format_string(' / %+0.2f x', v_od_cil) if v_od_cil else '') + \
-                                (f' {vl_od_pl_ard_eixo}°' if vl_od_pl_ard_eixo else '') + \
-                                (locale.format_string(' OE: %+0.2f', v_oe_esf) if v_oe_esf else '') + \
-                                (locale.format_string(' / %+0.2f x', v_oe_cil) if v_oe_cil else '') + \
-                                (f' {vl_oe_pl_ard_eixo}°' if vl_oe_pl_ard_eixo else '') + \
-                                (locale.format_string(' A=%+0.2f', v_add) if v_add else '') + \
-                                ("\nOBS: " + ds_observacao_refracao if ds_observacao_refracao else '')
+                    partes_oculos = ["Óculos:"]
+                    if v_od_esf or v_od_cil or vl_od_pl_ard_eixo:
+                        od = " OD:"
+                        if v_od_esf:
+                            od += locale.format_string(' %+0.2f', v_od_esf)
+                        if v_od_cil:
+                            od += locale.format_string(' / %+0.2f x', v_od_cil)
+                        if vl_od_pl_ard_eixo:
+                            od += f' {vl_od_pl_ard_eixo}°'
+                        partes_oculos.append(od)
+                    if v_oe_esf or v_oe_cil or vl_oe_pl_ard_eixo:
+                        oe = " OE:"
+                        if v_oe_esf:
+                            oe += locale.format_string(' %+0.2f', v_oe_esf)
+                        if v_oe_cil:
+                            oe += locale.format_string(' / %+0.2f x', v_oe_cil)
+                        if vl_oe_pl_ard_eixo:
+                            oe += f' {vl_oe_pl_ard_eixo}°'
+                        partes_oculos.append(oe)
+                    if v_add:
+                        partes_oculos.append(locale.format_string(' A=%+0.2f', v_add))
+                    ds_oculos = "".join(partes_oculos)
+                    if ds_observacao_refracao:
+                        ds_oculos += "\nOBS: " + ds_observacao_refracao
 
             elif tipo_refracao == 'estatica':
                 v_od_esf_e = converter_valor(vl_od_pl_are_esf)
@@ -926,14 +941,29 @@ async def salvar_rascunho_prontuario(
                         nm_usuario=nm_usuario
                     )
 
-                if any([v_od_esf_e, v_od_cil_e, vl_od_pl_are_eixo, v_oe_esf_e, v_oe_cil_e, ds_observacao_refracao]):
-                    ds_oculos = "Óculos: " + (locale.format_string('OD: %+0.2f', v_od_esf_e) if v_od_esf_e else '') + \
-                                (locale.format_string(' / %+0.2f x', v_od_cil_e) if v_od_cil_e else '') + \
-                                (f' {vl_od_pl_are_eixo}°' if vl_od_pl_are_eixo else '') + \
-                                (locale.format_string(' OE: %+0.2f', v_oe_esf_e) if v_oe_esf_e else '') + \
-                                (locale.format_string(' / %+0.2f x', v_oe_cil_e) if v_oe_cil_e else '') + \
-                                (f' {vl_oe_pl_are_eixo}°' if vl_oe_pl_are_eixo else '') + \
-                                ("\nOBS: " + ds_observacao_refracao if ds_observacao_refracao else '')
+                if any([v_od_esf_e, v_od_cil_e, vl_od_pl_are_eixo, v_oe_esf_e, v_oe_cil_e, vl_oe_pl_are_eixo, ds_observacao_refracao]):
+                    partes_oculos = ["Óculos:"]
+                    if v_od_esf_e or v_od_cil_e or vl_od_pl_are_eixo:
+                        od = " OD:"
+                        if v_od_esf_e:
+                            od += locale.format_string(' %+0.2f', v_od_esf_e)
+                        if v_od_cil_e:
+                            od += locale.format_string(' / %+0.2f x', v_od_cil_e)
+                        if vl_od_pl_are_eixo:
+                            od += f' {vl_od_pl_are_eixo}°'
+                        partes_oculos.append(od)
+                    if v_oe_esf_e or v_oe_cil_e or vl_oe_pl_are_eixo:
+                        oe = " OE:"
+                        if v_oe_esf_e:
+                            oe += locale.format_string(' %+0.2f', v_oe_esf_e)
+                        if v_oe_cil_e:
+                            oe += locale.format_string(' / %+0.2f x', v_oe_cil_e)
+                        if vl_oe_pl_are_eixo:
+                            oe += f' {vl_oe_pl_are_eixo}°'
+                        partes_oculos.append(oe)
+                    ds_oculos = "".join(partes_oculos)
+                    if ds_observacao_refracao:
+                        ds_oculos += "\nOBS: " + ds_observacao_refracao
             
             if ds_oculos:
                 request.session[f"ds_oculos_{nr_atendimento}"] = ds_oculos
@@ -1100,6 +1130,9 @@ async def gerar_pdf_oculos(request: Request):
             dt_atendimento,
             tipo=tipo
         )
+
+        if dados.get("formato") == "html":
+            return HTMLResponse(content=html_pdf, status_code=200)
         
         try:
             try:
@@ -1147,6 +1180,9 @@ async def gerar_pdf_receita(request: Request):
                 nr_copias
             )
 
+            if dados.get("formato") == "html":
+                return HTMLResponse(content=html_pdf, status_code=200)
+
             try:
                 try:
                     from weasyprint import HTML
@@ -1185,6 +1221,9 @@ async def gerar_pdf_exames(request: Request):
 
         try:
             html_pdf = impressao_dados_evolucao.retornar_html_exames(exames, nm_paciente, convenio, dt_nascimento, nr_cpf)
+
+            if dados.get("formato") == "html":
+                return HTMLResponse(content=html_pdf, status_code=200)
             
             try:
                 try:
@@ -2414,27 +2453,25 @@ async def get_evolucao_completa(nr_atendimento: int, request: Request):
             if any([vl_od_pl_ard_esf, vl_od_pl_ard_cil, vl_od_pl_ard_eixo, vl_oe_pl_ard_esf, vl_oe_pl_ard_cil, vl_oe_pl_ard_eixo, vl_adicao, ds_observacao]):
                 partes_refracao = ["Óculos:"]
                 
-                # OD (Olho Direito)
                 if vl_od_pl_ard_esf or vl_od_pl_ard_cil or vl_od_pl_ard_eixo:
-                    od_parts = []
+                    od_str = "OD:"
                     if vl_od_pl_ard_esf:
-                        od_parts.append(f"OD: {locale.format_string('%+0.2f', float(vl_od_pl_ard_esf))}")
+                        od_str += f" {locale.format_string('%+0.2f', float(vl_od_pl_ard_esf))}"
                     if vl_od_pl_ard_cil:
-                        od_parts.append(f" / {locale.format_string('%+0.2f', float(vl_od_pl_ard_cil))}")
+                        od_str += f" / {locale.format_string('%+0.2f', float(vl_od_pl_ard_cil))}"
                     if vl_od_pl_ard_eixo:
-                        od_parts.append(f" x {vl_od_pl_ard_eixo}°")
-                    partes_refracao.append("".join(od_parts))
-                
-                # OE (Olho Esquerdo)
+                        od_str += f" x {vl_od_pl_ard_eixo}°"
+                    partes_refracao.append(od_str)
+
                 if vl_oe_pl_ard_esf or vl_oe_pl_ard_cil or vl_oe_pl_ard_eixo:
-                    oe_parts = []
+                    oe_str = "OE:"
                     if vl_oe_pl_ard_esf:
-                        oe_parts.append(f"OE: {locale.format_string('%+0.2f', float(vl_oe_pl_ard_esf))}")
+                        oe_str += f" {locale.format_string('%+0.2f', float(vl_oe_pl_ard_esf))}"
                     if vl_oe_pl_ard_cil:
-                        oe_parts.append(f" / {locale.format_string('%+0.2f', float(vl_oe_pl_ard_cil))}")
+                        oe_str += f" / {locale.format_string('%+0.2f', float(vl_oe_pl_ard_cil))}"
                     if vl_oe_pl_ard_eixo:
-                        oe_parts.append(f" x {vl_oe_pl_ard_eixo}°")
-                    partes_refracao.append("".join(oe_parts))
+                        oe_str += f" x {vl_oe_pl_ard_eixo}°"
+                    partes_refracao.append(oe_str)
                 
                 # Adição
                 if vl_adicao:
@@ -2453,29 +2490,27 @@ async def get_evolucao_completa(nr_atendimento: int, request: Request):
             
             partes_estatica = ["Óculos:"]
             
-            # OD Estática
             if evolucao_data.get('vl_od_pl_are_esf') or evolucao_data.get('vl_od_pl_are_cil') or \
                evolucao_data.get('vl_od_pl_are_eixo'):
-                od_parts = []
+                od_str = "OD:"
                 if evolucao_data.get('vl_od_pl_are_esf'):
-                    od_parts.append(f"OD: {locale.format_string('%+0.2f', float(evolucao_data['vl_od_pl_are_esf']))}")
+                    od_str += f" {locale.format_string('%+0.2f', float(evolucao_data['vl_od_pl_are_esf']))}"
                 if evolucao_data.get('vl_od_pl_are_cil'):
-                    od_parts.append(f" / {locale.format_string('%+0.2f', float(evolucao_data['vl_od_pl_are_cil']))}")
+                    od_str += f" / {locale.format_string('%+0.2f', float(evolucao_data['vl_od_pl_are_cil']))}"
                 if evolucao_data.get('vl_od_pl_are_eixo'):
-                    od_parts.append(f" x {evolucao_data['vl_od_pl_are_eixo']}°")
-                partes_estatica.append("".join(od_parts))
-            
-            # OE Estática
+                    od_str += f" x {evolucao_data['vl_od_pl_are_eixo']}°"
+                partes_estatica.append(od_str)
+
             if evolucao_data.get('vl_oe_pl_are_esf') or evolucao_data.get('vl_oe_pl_are_cil') or \
                evolucao_data.get('vl_oe_pl_are_eixo'):
-                oe_parts = []
+                oe_str = "OE:"
                 if evolucao_data.get('vl_oe_pl_are_esf'):
-                    oe_parts.append(f"OE: {locale.format_string('%+0.2f', float(evolucao_data['vl_oe_pl_are_esf']))}")
+                    oe_str += f" {locale.format_string('%+0.2f', float(evolucao_data['vl_oe_pl_are_esf']))}"
                 if evolucao_data.get('vl_oe_pl_are_cil'):
-                    oe_parts.append(f" / {locale.format_string('%+0.2f', float(evolucao_data['vl_oe_pl_are_cil']))}")
+                    oe_str += f" / {locale.format_string('%+0.2f', float(evolucao_data['vl_oe_pl_are_cil']))}"
                 if evolucao_data.get('vl_oe_pl_are_eixo'):
-                    oe_parts.append(f" x {evolucao_data['vl_oe_pl_are_eixo']}°")
-                partes_estatica.append("".join(oe_parts))
+                    oe_str += f" x {evolucao_data['vl_oe_pl_are_eixo']}°"
+                partes_estatica.append(oe_str)
             
             refracao_estatica = " ".join(partes_estatica)
             

@@ -22,8 +22,8 @@ class OracleConnection:
 
             #Oracle João
             #oracle_client_path= r"C:\Oracle\instantclient-basic-windows.x64-21.19.0.0.0dbru\instantclient_21_19"
-            oracle_client_path = r"C:\Oracle\instantclient-basic-windows.x64-23.26.0.0.0\instantclient_23_0"
-            #oracle_client_path = "/opt/oracle/instantclient_23_9" #alternativa para linux
+            #oracle_client_path = r"C:\Oracle\instantclient-basic-windows.x64-23.26.0.0.0\instantclient_23_0"
+            oracle_client_path = "/opt/oracle/instantclient_23_9" #alternativa para linux
             cx_Oracle.init_oracle_client(lib_dir=oracle_client_path)
             cls._oracle_client_initialized = True
 

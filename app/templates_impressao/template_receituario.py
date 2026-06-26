@@ -98,61 +98,89 @@ def processar_item_receita(item):
     Retorna HTML formatado para o item
     """
     import re
-    
+
     lines = item.split("\n")
     uso_line = ""
     medicamento_line = ""
-    instrucoes_line = ""
-    
+    quantidade_line = ""
+    instrucoes_lines = []
+    found_medicamento = False
+
     for line in lines:
-        if line.startswith("USO:") or line.startswith("=> USO"):
-            uso_line = line.replace("=> ", "").strip()  # Remove o "=>" se existir
-        elif ":" in line and not line.startswith("USO:") and not line.startswith("=> USO"):
-            parts = line.split(":", 1)
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("USO:") or stripped.startswith("=> USO"):
+            uso_line = stripped.replace("=> ", "").strip()
+        elif (
+            ":" in stripped
+            and not stripped.startswith("USO:")
+            and not stripped.startswith("=> USO")
+            and not found_medicamento
+        ):
+            parts = stripped.split(":", 1)
             if len(parts) == 2:
                 medicamento_line = parts[0].strip() + ":"
-                instrucoes_line = parts[1].strip()
-        else:
-            if instrucoes_line:
-                instrucoes_line += " " + line.strip()
-            else:
-                instrucoes_line = line.strip()
+                rest = parts[1].strip()
+                if rest:
+                    if re.match(
+                        r"^(Pingar|Tomar|Aplicar|Ingerir|Usar|Colocar|Instilar)",
+                        rest,
+                        re.IGNORECASE,
+                    ):
+                        instrucoes_lines.append(rest)
+                    else:
+                        quantidade_line = rest
+                found_medicamento = True
+        elif found_medicamento or medicamento_line:
+            instrucoes_lines.append(stripped)
 
-    if instrucoes_line:
-        instrucoes_line = instrucoes_line.replace("\n", " ").strip()
-        quantidade_match = re.match(r"^([0-9]+[A-Za-z]*)\s+(.*)$", instrucoes_line)
-        if quantidade_match and medicamento_line:
+    if quantidade_line and medicamento_line:
+        quantidade_match = re.match(r"^([0-9]+[A-Za-z]*)\s*(.*)$", quantidade_line)
+        if quantidade_match:
             quantidade = quantidade_match.group(1)
             restante = quantidade_match.group(2).strip()
 
             if quantidade.isdigit() and restante:
                 partes_restante = restante.split(" ", 1)
                 primeira_palavra = partes_restante[0]
-                if primeira_palavra.isalpha() and primeira_palavra.isupper() and len(primeira_palavra) <= 4:
+                if (
+                    primeira_palavra.isalpha()
+                    and primeira_palavra.isupper()
+                    and len(primeira_palavra) <= 4
+                ):
                     quantidade = f"{quantidade}{primeira_palavra}"
                     restante = partes_restante[1].strip() if len(partes_restante) > 1 else ""
-            medicamento_line = f"{medicamento_line} {quantidade}".strip()
-            instrucoes_line = restante
 
-        sentences = [s.strip() for s in re.split(r"(?<=\.)\s*", instrucoes_line) if s.strip()]
-        instrucoes_line = "<br>".join(sentences)
-    
-    # Montar o HTML do item com formatação corrigida
-    html_parts = []
-    
+            if restante and re.match(
+                r"^(Pingar|Tomar|Aplicar|Ingerir|Usar|Colocar|Instilar)",
+                restante,
+                re.IGNORECASE,
+            ):
+                instrucoes_lines.insert(0, restante)
+                restante = ""
+
+            medicamento_line = f"{medicamento_line} {quantidade}".strip()
+            if restante:
+                instrucoes_lines.insert(0, restante)
+        else:
+            medicamento_line = f"{medicamento_line} {quantidade_line}".strip()
+
+    instrucoes_html = []
+    for instr in instrucoes_lines:
+        sentences = [s.strip() for s in re.split(r"(?<=\.)\s*", instr) if s.strip()]
+        instrucoes_html.extend(sentences)
+    instrucoes_line = "<br>".join(instrucoes_html)
+
+    blocos = []
     if uso_line:
-        # USO na mesma linha do hífen
-        html_parts.append(f'<div class="med-item">- <span class="uso-linha">{uso_line}</span>')
-    else:
-        # Sem USO: não adiciona o hífen
-        html_parts.append('<div class="med-item">')
-    
+        blocos.append(f'- <span class="uso-linha">{uso_line}</span>')
     if medicamento_line:
-        html_parts.append(f'<span class="medicamento-linha">{medicamento_line}</span>')
-    
+        blocos.append(f'<span class="medicamento-linha">{medicamento_line}</span>')
     if instrucoes_line:
-        html_parts.append(f'<span class="instrucoes-linha">{instrucoes_line}</span>')
-    
-    html_parts.append('</div>')
-    
-    return "".join(html_parts)
+        blocos.append(f'<span class="instrucoes-linha">{instrucoes_line}</span>')
+
+    if not blocos:
+        return ""
+
+    return f'<div class="med-item">{"<br>".join(blocos)}</div>'

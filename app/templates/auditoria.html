@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoria e Acessos</title>
+    <link rel="stylesheet" href="/static/style/auditoria.css">
+    <script src="/static/js/auditoria.js" defer></script>
+</head>
+<body>
+    <header class="auditoria-header">
+        <h1>Auditoria e Acessos</h1>
+        <p>Monitoramento de IPs, usuários, funcionalidades e horários de acesso ao sistema</p>
+    </header>
+
+    <main class="auditoria-container">
+        <section class="cards-resumo">
+            <div class="card-resumo destaque">
+                <div class="valor" id="total-acessos">—</div>
+                <div class="rotulo">Total de acessos</div>
+            </div>
+            <div class="card-resumo">
+                <div class="valor" id="ips-distintos">—</div>
+                <div class="rotulo">IPs distintos</div>
+            </div>
+            <div class="card-resumo">
+                <div class="valor" id="usuarios-distintos">—</div>
+                <div class="rotulo">Usuários distintos</div>
+            </div>
+            <div class="card-resumo">
+                <div class="valor" id="acessos-hoje">—</div>
+                <div class="rotulo">Acessos hoje</div>
+            </div>
+            <div class="card-resumo">
+                <div class="valor" id="ips-hoje">—</div>
+                <div class="rotulo">IPs distintos hoje</div>
+            </div>
+        </section>
+
+        <section class="filtros-panel">
+            <h2>Filtros</h2>
+            <form id="filtros-form">
+                <div class="filtros-grid">
+                    <div>
+                        <label for="data_inicio">Data início</label>
+                        <input type="datetime-local" id="data_inicio" name="data_inicio">
+                    </div>
+                    <div>
+                        <label for="data_fim">Data fim</label>
+                        <input type="datetime-local" id="data_fim" name="data_fim">
+                    </div>
+                    <div>
+                        <label for="ip_acesso">IP</label>
+                        <input type="text" id="ip_acesso" name="ip_acesso" placeholder="Ex: 192.168.0.10">
+                    </div>
+                    <div>
+                        <label for="nm_usuario">Usuário</label>
+                        <input type="text" id="nm_usuario" name="nm_usuario" placeholder="Ex: dr.silva">
+                    </div>
+                    <div>
+                        <label for="ds_funcao">Função</label>
+                        <input type="text" id="ds_funcao" name="ds_funcao" placeholder="Ex: Agenda, Login">
+                    </div>
+                    <div>
+                        <label for="ds_rota">Rota</label>
+                        <input type="text" id="ds_rota" name="ds_rota" placeholder="Ex: /prontuario">
+                    </div>
+                    <div class="filtros-acoes">
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="button" id="btn-limpar" class="btn btn-secondary">Limpar</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section class="painel-duplo">
+            <div class="painel-ranking">
+                <h3>Top IPs</h3>
+                <div id="ranking-ip"><div class="loading">Carregando…</div></div>
+            </div>
+            <div class="painel-ranking">
+                <h3>Top Funções</h3>
+                <div id="ranking-funcao"><div class="loading">Carregando…</div></div>
+            </div>
+        </section>
+
+        <section class="painel-ranking" style="margin-bottom:1.5rem">
+            <h3>Top Usuários</h3>
+            <div id="ranking-usuario"><div class="loading">Carregando…</div></div>
+        </section>
+
+        <section class="tabela-panel">
+            <h3>Registros de acesso</h3>
+            <div id="loading" class="loading">Carregando registros…</div>
+            <div id="sem-dados" class="sem-dados" style="display:none">Nenhum registro encontrado para os filtros selecionados.</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>IP</th>
+                        <th>Usuário</th>
+                        <th>Função</th>
+                        <th>Rota</th>
+                        <th>Método</th>
+                        <th>Status</th>
+                        <th>Tempo</th>
+                        <th>User-Agent</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-body"></tbody>
+            </table>
+            <div class="paginacao">
+                <button id="btn-anterior" class="btn btn-secondary" disabled>Anterior</button>
+                <span id="info-paginacao">—</span>
+                <button id="btn-proximo" class="btn btn-secondary">Próximo</button>
+            </div>
+            <div class="auto-refresh" id="ultima-atualizacao"></div>
+        </section>
+    </main>
+</body>
+</html>

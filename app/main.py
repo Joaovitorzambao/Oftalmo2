@@ -38,6 +38,7 @@ from app.auth import authenticate_user, get_db_connection
 from app.oracledb.insert_update_dados import cirurgia
 from app.oracledb.get_dados import get_cirurgias
 from app.postgresql import prontuario_especial
+from app.postgresql import auditoria as auditoria_pg
 from app.oracledb.oracle_connection import OracleConnection
 
 
@@ -53,6 +54,41 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "192.168.0.23"])
 app.add_middleware(SessionMiddleware, secret_key="chave_secreta")
+
+
+ROTAS_IGNORAR_AUDITORIA = ("/static", "/favicon.ico")
+
+
+@app.middleware("http")
+async def middleware_auditoria(request: Request, call_next):
+    path = request.url.path
+    if path.startswith(ROTAS_IGNORAR_AUDITORIA):
+        return await call_next(request)
+
+    inicio = time.time()
+    response = await call_next(request)
+    duracao_ms = int((time.time() - inicio) * 1000)
+
+    try:
+        nm_usuario = request.session.get("nm_usuario")
+        cd_pessoa_fisica = request.session.get("cd_pessoa_fisica")
+        await auditoria_pg.registrar_acesso(
+            ip_acesso=auditoria_pg.obter_ip_cliente(request),
+            ds_rota=path,
+            ds_metodo=request.method,
+            ds_funcao=auditoria_pg.obter_funcao_por_rota(path, request.method),
+            nr_status_http=response.status_code,
+            vl_tempo_resposta_ms=duracao_ms,
+            nm_usuario=nm_usuario,
+            cd_pessoa_fisica=int(cd_pessoa_fisica) if cd_pessoa_fisica else None,
+            ds_user_agent=request.headers.get("user-agent"),
+            ds_query_string=str(request.query_params) if request.query_params else None,
+            ds_referer=request.headers.get("referer"),
+        )
+    except Exception as e:
+        logger.debug(f"Auditoria não registrada: {e}")
+
+    return response
 
 @app.get("/login")
 async def login_page(request: Request):
@@ -2603,3 +2639,69 @@ async def get_data_atendimento(nr_atendimento: int, request: Request):
     except Exception as e:
         logger.error(f"Erro ao buscar data do atendimento: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def _serializar_auditoria(data):
+    """Converte datetime para string ISO nos registros de auditoria."""
+    def converter(obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return obj
+
+    resultado = {}
+    for chave, valor in data.items():
+        if chave == "registros":
+            resultado[chave] = [
+                {k: converter(v) for k, v in row.items()} for row in valor
+            ]
+        else:
+            resultado[chave] = valor
+    return resultado
+
+
+@app.get("/auditoria", response_class=HTMLResponse)
+async def pagina_auditoria(request: Request):
+    """Tela de auditoria e acessos — rota pública, sem autenticação."""
+    return templates.TemplateResponse("auditoria.html", {"request": request})
+
+
+@app.get("/api/auditoria/logs")
+async def api_auditoria_logs(
+    data_inicio: Optional[str] = Query(None),
+    data_fim: Optional[str] = Query(None),
+    ip_acesso: Optional[str] = Query(None),
+    nm_usuario: Optional[str] = Query(None),
+    ds_funcao: Optional[str] = Query(None),
+    ds_rota: Optional[str] = Query(None),
+    limite: int = Query(200, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+):
+    """API pública de consulta aos logs de auditoria."""
+    dt_inicio = None
+    dt_fim = None
+    if data_inicio:
+        try:
+            dt_inicio = datetime.fromisoformat(data_inicio)
+        except ValueError:
+            pass
+    if data_fim:
+        try:
+            dt_fim = datetime.fromisoformat(data_fim)
+        except ValueError:
+            pass
+
+    try:
+        dados = await auditoria_pg.listar_auditoria(
+            data_inicio=dt_inicio,
+            data_fim=dt_fim,
+            ip_acesso=ip_acesso,
+            nm_usuario=nm_usuario,
+            ds_funcao=ds_funcao,
+            ds_rota=ds_rota,
+            limite=limite,
+            offset=offset,
+        )
+        return JSONResponse(content=_serializar_auditoria(dados))
+    except Exception as e:
+        logger.error(f"Erro ao listar auditoria: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro ao consultar auditoria: {str(e)}")
